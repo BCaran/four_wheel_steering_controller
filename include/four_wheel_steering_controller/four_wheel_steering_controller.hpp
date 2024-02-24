@@ -52,7 +52,7 @@ class FourWheelSteeringController : public controller_interface::ControllerInter
 
 public:
   FOUR_WHEEL_STEERING_CONTROLLER_PUBLIC
-  DiffDriveController();
+  FourWheelSteeringController();
 
   FOUR_WHEEL_STEERING_CONTROLLER_PUBLIC
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;

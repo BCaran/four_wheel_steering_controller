@@ -40,11 +40,11 @@ target_include_directories(four_wheel_steering_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/four_wheel_steering_controller>
 )
-target_link_libraries(four_wheel_steering_controller PUBLIC four_wheel_steering_controller)
+target_link_libraries(four_wheel_steering_controller PUBLIC four_wheel_steering_controller_parameters)
 ament_target_dependencies(four_wheel_steering_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(four_wheel_steering_controller PRIVATE "FOUR_WHEEL_STEERING_CONTROLLER_BUILDING_DLL")
+target_compile_definitions(four_wheel_steering_controller PRIVATE "four_wheel_steering_controller_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface four_wheel_steering_plugin.xml)
 
 if(BUILD_TESTING)
@@ -56,7 +56,7 @@ if(BUILD_TESTING)
     test/test_four_wheel_steering_controller.cpp
     ENV config_file=${CMAKE_CURRENT_SOURCE_DIR}/test/config/test_four_wheel_steering_controller.yaml)
   target_link_libraries(test_four_wheel_steering_controller
-  four_wheel_steering_controller
+    four_wheel_steering_controller
   )
   ament_target_dependencies(test_four_wheel_steering_controller
     geometry_msgs

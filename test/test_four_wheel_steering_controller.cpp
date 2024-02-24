@@ -167,7 +167,7 @@ protected:
   }
 
   const std::string controller_name = "test_four_wheel_steering_controller";
-  std::unique_ptr<TestableFourWheelSteeringControllerr> controller_;
+  std::unique_ptr<TestableFourWheelSteeringController> controller_;
 
   const std::vector<std::string> left_wheel_names = {"left_wheel_joint"};
   const std::vector<std::string> right_wheel_names = {"right_wheel_joint"};
