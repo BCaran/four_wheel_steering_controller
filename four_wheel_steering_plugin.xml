@@ -1,0 +1,7 @@
+<library path="four_wheel_steering_controller">
+  <class name="four_wheel_steering_controller/FourWheelSteeringController" type="four_wheel_steering_controller::FourWheelSteeringController" base_class_type="controller_interface::ControllerInterface">
+  <description>
+    The four wheel steering controller transformas linear x, linear y and angular velocity messages into commands for each wheel for a four wheel steering four wheel driving (4WS4WD/4WIS4WID) mobile robot.
+  </description>
+  </class>
+</library>
