@@ -1,4 +1,4 @@
-// Copyright 2020 PAL Robotics S.L.
+// Copyright 2024
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /*
- * Author: Enrique Fernández
+ * Author: Branimir Caran
  */
 
 #include "four_wheel_steering_controller/odometry.hpp"
@@ -25,17 +25,27 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
   x_(0.0),
   y_(0.0),
   heading_(0.0),
-  linear_(0.0),
+  linear_x_(0.0),
+  linear_y_(0.0),
   angular_(0.0),
-  wheel_separation_(0.0),
-  left_wheel_radius_(0.0),
-  right_wheel_radius_(0.0),
-  left_wheel_old_pos_(0.0),
-  right_wheel_old_pos_(0.0),
+  fl_wheel_position_x_(0.0),
+  fl_wheel_position_y_(0.0),
+  fl_wheel_position_radius_(0.0),
+  bl_wheel_position_x_(0.0),
+  bl_wheel_position_y_(0.0),
+  bl_wheel_position_radius_(0.0),
+  br_wheel_position_x_(0.0),
+  br_wheel_position_y_(0.0),
+  br_wheel_position_radius_(0.0),
+  fr_wheel_position_x_(0.0),
+  fr_wheel_position_y_(0.0),
+  fr_wheel_position_radius_(0.0),
+  left_wheel_old_pos_(0.0), //<------------------- DORADITI!
+  right_wheel_old_pos_(0.0), //<------------------- DORADITI!
   velocity_rolling_window_size_(velocity_rolling_window_size),
-  linear_accumulator_(velocity_rolling_window_size),
+  linear_accumulator_x_(velocity_rolling_window_size),
+  linear_accumulator_y_(velocity_rolling_window_size),
   angular_accumulator_(velocity_rolling_window_size)
-{
 }
 
 void Odometry::init(const rclcpp::Time & time)
@@ -45,7 +55,9 @@ void Odometry::init(const rclcpp::Time & time)
   timestamp_ = time;
 }
 
-bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & time)
+bool Odometry::update(double fl_wheel_pos, double fl_steering_pos, double bl_wheel_pos, double bl_steering_pos,
+                      double br_wheel_pos, double br_steering_pos, double fr_wheel_pos, double fr_steering_pos,
+                      const rclcpp::Time & time)
 {
   // We cannot estimate the speed with very small time intervals:
   const double dt = time.seconds() - timestamp_.seconds();
@@ -55,56 +67,78 @@ bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & ti
   }
 
   // Get current wheel joint positions:
-  const double left_wheel_cur_pos = left_pos * left_wheel_radius_;
-  const double right_wheel_cur_pos = right_pos * right_wheel_radius_;
+  const double fl_wheel_cur_pos = fl_wheel_pos * fl_wheel_radius_;
+  const double bl_wheel_cur_pos = bl_wheel_pos * br_wheel_radius_;
+  const double br_wheel_cur_pos = br_wheel_pos * bl_wheel_radius_;
+  const double fr_wheel_cur_pos = fr_wheel_pos * fr_wheel_radius_;
 
   // Estimate velocity of wheels using old and current position:
-  const double left_wheel_est_vel = left_wheel_cur_pos - left_wheel_old_pos_;
-  const double right_wheel_est_vel = right_wheel_cur_pos - right_wheel_old_pos_;
+  const double fl_wheel_est_vel = fl_wheel_cur_pos - fl_wheel_old_pos_;
+  const double bl_wheel_est_vel = bl_wheel_cur_pos - bl_wheel_old_pos_;
+  const double br_wheel_est_vel = br_wheel_cur_pos - br_wheel_old_pos_;
+  const double fr_wheel_est_vel = fr_wheel_cur_pos - fr_wheel_old_pos_;
 
   // Update old position with current:
-  left_wheel_old_pos_ = left_wheel_cur_pos;
-  right_wheel_old_pos_ = right_wheel_cur_pos;
+  fl_wheel_old_pos_ = fl_wheel_cur_pos;
+  bl_wheel_old_pos_ = bl_wheel_cur_pos;
+  br_wheel_old_pos_ = br_wheel_cur_pos;
+  fr_wheel_old_pos_ = fr_wheel_cur_pos;
 
   updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, time);
 
   return true;
 }
 
-bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)
+bool Odometry::updateFromVelocity(double fl_wheel_vel, double fl_steering_pos, double bl_wheel_vel, double bl_steering_pos,
+                                  double br_wheel_vel, double br_steering_pos, double fr_wheel_vel, double fr_steering_pos,
+                                  const rclcpp::Time & time)
 {
   const double dt = time.seconds() - timestamp_.seconds();
 
-  // Compute linear and angular diff:
-  const double linear = (left_vel + right_vel) * 0.5;
-  // Now there is a bug about scout angular velocity
-  const double angular = (right_vel - left_vel) / wheel_separation_;
+  //Compute linear x, linear y and angular according to Kinematics, dynamics and control design of 4WIS4WID mobile robots (Lee et. all)
+  double linear_x = 0.0;
+  double linear_y = 0.0;
+  double angular = 0.0;
+  const double wheel_vel[4] = {fl_wheel_vel, bl_wheel_vel, br_wheel_vel, fr_wheel_vel};
+  const double steering_pos[4] = {fl_steering_pos, bl_steering_pos, br_steering_pos, fr_steering_pos};
+  const double wheel_pos_x[4] = {fl_wheel_position_x_, bl_wheel_position_x_, br_wheel_position_x_, fr_wheel_position_x_};
+  const double wheel_pos_y[4] = {fl_wheel_position_y_, bl_wheel_position_y_, br_wheel_position_y_, fr_wheel_position_y_};
+  double W[4] = {0.0, 0.0, 0.0, 0.0};
+  for(int i = 0; i <4; i++){
+    linear_x = linear_x + (wheel_vel[i] * (cos(steering_pos[i]) / 4));
+    linear_y = linear_y + (wheel_vel[i] * (sin(steering_pos[i]) / 4));
+    W[i] = (-wheel_pos_y[i] * cos(steering_pos[i]) + wheel_pos_x[i] * sin(steering_pos[i])) / (4 * pow(wheel_pos_x[i], 2) + 4 * pow(wheel_pos_y[i], 2));
+    angular = angular + W[i] * wheel_vel[i];
+  }
 
   // Integrate odometry:
-  integrateExact(linear, angular);
+  integrateExact(linear_x, linear_y, angular);
 
   timestamp_ = time;
 
   // Estimate speeds using a rolling mean to filter them out:
-  linear_accumulator_.accumulate(linear / dt);
+  linear_x_acumulator_.accumulate(linear_x / dt);
+  linear_y_acumulator_.accumulate(linear_y / dt);
   angular_accumulator_.accumulate(angular / dt);
 
-  linear_ = linear_accumulator_.getRollingMean();
+  linear_x_ = linear_x_acumulator_.getRollingMean();
+  linear_y_ = linear_y_acumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
 
   return true;
 }
 
-void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time & time)
+void Odometry::updateOpenLoop(double linear_x, double linear_y, double angular, const rclcpp::Time & time)
 {
   /// Save last linear and angular velocity:
-  linear_ = linear;
+  linear_x_ = linear_x;
+  linear_y_ = linear_y;
   angular_ = angular;
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
   timestamp_ = time;
-  integrateExact(linear * dt, angular * dt);
+  integrateExact(linear_x * dt, linear_y * dt,  angular * dt); //<------------------------------------TU SAM STAO!!!
 }
 
 void Odometry::resetOdometry()

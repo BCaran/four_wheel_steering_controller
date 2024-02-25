@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20240224-1756-Experimental"
+	Name="branimir-asus"
+	Generator="ctest-3.22.1"
+	CompilerName="/usr/bin/c++"
+	CompilerVersion="11.4.0"
+	OSName="Linux"
+	Hostname="branimir-asus"
+	OSRelease="6.5.0-21-generic"
+	OSVersion="#21~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Feb  9 13:32:52 UTC 2"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="140"
+	ProcessorCacheSize="12288"
+	NumberOfLogicalCPU="8"
+	NumberOfPhysicalCPU="4"
+	TotalVirtualMemory="2047"
+	TotalPhysicalMemory="15664"
+	LogicalProcessorsPerPhysical="2"
+	ProcessorClockFrequency="4194.95"
+	>
+	<Testing>
+		<StartDateTime>Feb 24 18:56 CET</StartDateTime>
+		<StartTestTime>1708797392</StartTestTime>
+		<TestList/>
+		<EndDateTime>Feb 24 18:56 CET</EndDateTime>
+		<EndTestTime>1708797392</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

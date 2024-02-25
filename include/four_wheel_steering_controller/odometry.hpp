@@ -1,4 +1,4 @@
-// Copyright 2020 PAL Robotics S.L.
+// Copyright 2024
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,7 @@
 // limitations under the License.
 
 /*
- * Author: Luca Marchionni
- * Author: Bence Magyar
- * Author: Enrique Fernández
- * Author: Paul Mathieu
+ * Author: Branimir Caran
  */
 
 #ifndef FOUR_WHEEL_STEERING_CONTROLLER__ODOMETRY_HPP_
@@ -35,25 +32,33 @@ public:
   explicit Odometry(size_t velocity_rolling_window_size = 10);
 
   void init(const rclcpp::Time & time);
-  bool update(double left_pos, double right_pos, const rclcpp::Time & time);
-  bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time);
-  void updateOpenLoop(double linear, double angular, const rclcpp::Time & time);
+  bool update(double fl_wheel_pos, double fl_steering_pos, double bl_wheel_pos, double bl_steering_pos,
+              double br_wheel_pos, double br_steering_pos, double fr_wheel_pos, double fr_steering_pos,
+              const rclcpp::Time & time);
+  bool updateFromVelocity(double fl_wheel_vel, double fl_steering_pos, double bl_wheel_vel, double bl_steering_pos,
+                          double br_wheel_vel, double br_steering_pos, double fr_wheel_vel, double fr_steering_pos,
+                          const rclcpp::Time & time);
+  void updateOpenLoop(double linear_x, double linear_y, double angular, const rclcpp::Time & time);
   void resetOdometry();
 
   double getX() const { return x_; }
   double getY() const { return y_; }
   double getHeading() const { return heading_; }
-  double getLinear() const { return linear_; }
+  double getLinearX() const { return linear_x_; }
+  double getLinearY() const { return linear_y_; }
   double getAngular() const { return angular_; }
 
-  void setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius);
+  void setWheelParams(double fl_wheel_position_x, double fl_wheel_position_y, double fl_wheel_radius,
+                      double bl_wheel_position_x, double bl_wheel_position_y, double bl_wheel_radius,
+                      double br_wheel_position_x, double br_wheel_position_y, double br_wheel_radius,
+                      double fr_wheel_position_x, double fr_wheel_position_y, double fr_wheel_radius);
   void setVelocityRollingWindowSize(size_t velocity_rolling_window_size);
 
 private:
   using RollingMeanAccumulator = rcppmath::RollingMeanAccumulator<double>;
 
-  void integrateRungeKutta2(double linear, double angular);
-  void integrateExact(double linear, double angular);
+  void integrateRungeKutta2(double linear_x, double linear_y, double angular);
+  void integrateExact(double linear_x, double linear_y, double angular);
   void resetAccumulators();
 
   // Current timestamp:
@@ -65,21 +70,39 @@ private:
   double heading_;  // [rad]
 
   // Current velocity:
-  double linear_;   //   [m/s]
+  double linear_x_;   //   [m/s]
+  double linear_y_;   //   [m/s]
   double angular_;  // [rad/s]
 
   // Wheel kinematic parameters [m]:
-  double wheel_separation_;
-  double left_wheel_radius_;
-  double right_wheel_radius_;
+  //Front left wheel (FL)
+  double fl_wheel_position_x_;
+  double fl_wheel_position_y_;
+  double fl_wheel_radius_;
 
-  // Previous wheel position/state [rad]:
+  //Back left wheel(BL)
+  double bl_wheel_position_x_;
+  double bl_wheel_position_y_;
+  double bl_wheel_radius_;
+
+  //Back right wheel(BR)
+  double br_wheel_position_x_;
+  double br_wheel_position_y_;
+  double br_wheel_radius_;
+
+  //Front right wheel(FR)
+  double fr_wheel_position_x_;
+  double fr_wheel_position_y_;
+  double fr_wheel_radius_;
+
+  // Previous wheel position/state [rad]: <---------------------DORADITI!!
   double left_wheel_old_pos_;
   double right_wheel_old_pos_;
 
-  // Rolling mean accumulators for the linear and angular velocities:
+  // Rolling mean accumulators for the linear x, linear y and angular velocities:
   size_t velocity_rolling_window_size_;
-  RollingMeanAccumulator linear_accumulator_;
+  RollingMeanAccumulator linear_x_accumulator_;
+  RollingMeanAccumulator linear_y_accumulator_;
   RollingMeanAccumulator angular_accumulator_;
 };
 

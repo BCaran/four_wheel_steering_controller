@@ -3,7 +3,7 @@
     {
       "browse": {
         "databaseFilename": "${default}",
-        "limitSymbolsToIncludedHeaders": false
+        "limitSymbolsToIncludedHeaders": true
       },
       "includePath": [
         "/home/branimir/wcr_ws/install/vesc_driver/include/**",
@@ -29,7 +29,8 @@
         "/home/branimir/wcr_ws/src/wcr_stack/transport_drivers/udp_driver/include/**",
         "/home/branimir/wcr_ws/src/wcr_stack/vesc/vesc_ackermann/include/**",
         "/home/branimir/wcr_ws/src/wcr_stack/vesc/vesc_driver/include/**",
-        "/usr/include/**"
+        "/usr/include/**",
+        "/home/branimir/wcr_ws/src/four_wheel_steering_controller/**"
       ],
       "name": "ROS",
       "intelliSenseMode": "gcc-x64",
