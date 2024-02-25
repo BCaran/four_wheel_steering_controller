@@ -46,7 +46,6 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
   linear_accumulator_x_(velocity_rolling_window_size),
   linear_accumulator_y_(velocity_rolling_window_size),
   angular_accumulator_(velocity_rolling_window_size)
-}
 
 void Odometry::init(const rclcpp::Time & time)
 {
@@ -138,7 +137,7 @@ void Odometry::updateOpenLoop(double linear_x, double linear_y, double angular, 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
   timestamp_ = time;
-  integrateExact(linear_x * dt, linear_y * dt,  angular * dt); //<------------------------------------TU SAM STAO!!!
+  integrateExact(linear_x * dt, linear_y * dt,  angular * dt);
 }
 
 void Odometry::resetOdometry()
@@ -148,12 +147,26 @@ void Odometry::resetOdometry()
   heading_ = 0.0;
 }
 
-void Odometry::setWheelParams(
-  double wheel_separation, double left_wheel_radius, double right_wheel_radius)
+void setWheelParams(double fl_wheel_position_x, double fl_wheel_position_y, double fl_wheel_radius,
+                      double bl_wheel_position_x, double bl_wheel_position_y, double bl_wheel_radius,
+                      double br_wheel_position_x, double br_wheel_position_y, double br_wheel_radius,
+                      double fr_wheel_position_x, double fr_wheel_position_y, double fr_wheel_radius)
 {
-  wheel_separation_ = wheel_separation;
-  left_wheel_radius_ = left_wheel_radius;
-  right_wheel_radius_ = right_wheel_radius;
+  fl_wheel_position_x_ = fl_wheel_position_x;
+  fl_wheel_position_y_ = fl_wheel_position_y;
+  fl_wheel_radius_ = fl_wheel_radius;
+
+  bl_wheel_position_x_ = bl_wheel_position_x;
+  bl_wheel_position_y_ = bl_wheel_position_y;
+  bl_wheel_radius_ = bl_wheel_radius;
+
+  br_wheel_position_x_ = br_wheel_position_x;
+  br_wheel_position_y_ = br_wheel_position_y;
+  br_wheel_radius_ = br_wheel_radius;
+
+  fr_wheel_position_x_ = fr_wheel_position_x;
+  fr_wheel_position_y_ = fr_wheel_position_y;
+  fr_wheel_radius_ = fr_wheel_radius;
 }
 
 void Odometry::setVelocityRollingWindowSize(size_t velocity_rolling_window_size)
@@ -163,36 +176,36 @@ void Odometry::setVelocityRollingWindowSize(size_t velocity_rolling_window_size)
   resetAccumulators();
 }
 
-void Odometry::integrateRungeKutta2(double linear, double angular)
+void Odometry::integrateRungeKutta2(double linear_x, double linear_y, double angular)
 {
   const double direction = heading_ + angular * 0.5;
 
   /// Runge-Kutta 2nd order integration:
-  x_ += linear * cos(direction);
-  y_ += linear * sin(direction);
+  x_ += linear_x * cos(direction) - linear_y * sin(direction);
+  y_ += linear_x * sin(direction) + linear_y * cos(direction);
   heading_ += angular;
 }
 
-void Odometry::integrateExact(double linear, double angular)
+void Odometry::integrateExact(double linear_x, double linear_y, double angular)
 {
   if (fabs(angular) < 1e-6)
   {
-    integrateRungeKutta2(linear, angular);
+    integrateRungeKutta2(linear_x, linear_y, angular);
   }
   else
   {
     /// Exact integration (should solve problems when angular is zero):
     const double heading_old = heading_;
-    const double r = linear / angular;
     heading_ += angular;
-    x_ += r * (sin(heading_) - sin(heading_old));
-    y_ += -r * (cos(heading_) - cos(heading_old));
+    x_ += linear_x * ((cos(heading_) - linear_y * sin(heading_)) - (cos(heading_old) - linear_y * sin(heading_old)));
+    y_ += linear_x * ((sin(heading_) + linear_y * cos(heading_)) - (sin(heading_old) + linear_y * cos(heading_old)));
   }
 }
 
 void Odometry::resetAccumulators()
 {
-  linear_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
+  linear_x_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
+  linear_y_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
   angular_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
 }
 
