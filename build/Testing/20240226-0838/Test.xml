@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Site BuildName="(empty)"
-	BuildStamp="20240225-0712-Experimental"
+	BuildStamp="20240226-0838-Experimental"
 	Name="branimir-asus"
 	Generator="ctest-3.22.1"
 	CompilerName="/usr/bin/c++"
@@ -24,11 +24,11 @@
 	ProcessorClockFrequency="4300"
 	>
 	<Testing>
-		<StartDateTime>Feb 25 09:22 CET</StartDateTime>
-		<StartTestTime>1708849379</StartTestTime>
+		<StartDateTime>Feb 26 18:43 CET</StartDateTime>
+		<StartTestTime>1708969420</StartTestTime>
 		<TestList/>
-		<EndDateTime>Feb 25 09:22 CET</EndDateTime>
-		<EndTestTime>1708849379</EndTestTime>
+		<EndDateTime>Feb 26 18:43 CET</EndDateTime>
+		<EndTestTime>1708969420</EndTestTime>
 		<ElapsedMinutes>0</ElapsedMinutes>
 	</Testing>
 </Site>

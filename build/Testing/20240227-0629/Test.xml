@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Site BuildName="(empty)"
-	BuildStamp="20240225-0712-Experimental"
+	BuildStamp="20240227-0629-Experimental"
 	Name="branimir-asus"
 	Generator="ctest-3.22.1"
 	CompilerName="/usr/bin/c++"
@@ -21,14 +21,14 @@
 	TotalVirtualMemory="2047"
 	TotalPhysicalMemory="15664"
 	LogicalProcessorsPerPhysical="2"
-	ProcessorClockFrequency="4300"
+	ProcessorClockFrequency="4320.82"
 	>
 	<Testing>
-		<StartDateTime>Feb 25 09:22 CET</StartDateTime>
-		<StartTestTime>1708849379</StartTestTime>
+		<StartDateTime>Feb 27 07:29 CET</StartDateTime>
+		<StartTestTime>1709015364</StartTestTime>
 		<TestList/>
-		<EndDateTime>Feb 25 09:22 CET</EndDateTime>
-		<EndTestTime>1708849379</EndTestTime>
+		<EndDateTime>Feb 27 07:29 CET</EndDateTime>
+		<EndTestTime>1709015364</EndTestTime>
 		<ElapsedMinutes>0</ElapsedMinutes>
 	</Testing>
 </Site>

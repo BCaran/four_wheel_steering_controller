@@ -115,7 +115,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/lib/x86_64-linux-gnu/libdw.so"
+			"value" : "/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so"
 		},
 		{
 			"name" : "BACKWARD_TESTS",
@@ -1303,7 +1303,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/opt/ros/humble/share/backward_ros/cmake][/usr/lib/x86_64-linux-gnu/libdw.so][v()]"
+			"value" : "[/opt/ros/humble/share/backward_ros/cmake][/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so;/usr/lib/x86_64-linux-gnu/libdw.so][v()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_FastRTPS",

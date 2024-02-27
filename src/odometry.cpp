@@ -30,22 +30,26 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
   angular_(0.0),
   fl_wheel_position_x_(0.0),
   fl_wheel_position_y_(0.0),
-  fl_wheel_position_radius_(0.0),
+  fl_wheel_radius_(0.0),
   bl_wheel_position_x_(0.0),
   bl_wheel_position_y_(0.0),
-  bl_wheel_position_radius_(0.0),
+  bl_wheel_radius_(0.0),
   br_wheel_position_x_(0.0),
   br_wheel_position_y_(0.0),
-  br_wheel_position_radius_(0.0),
+  br_wheel_radius_(0.0),
   fr_wheel_position_x_(0.0),
   fr_wheel_position_y_(0.0),
-  fr_wheel_position_radius_(0.0),
-  left_wheel_old_pos_(0.0), //<------------------- DORADITI!
-  right_wheel_old_pos_(0.0), //<------------------- DORADITI!
+  fr_wheel_radius_(0.0),
+  fl_wheel_old_pos_(0.0),
+  bl_wheel_old_pos_(0.0),
+  br_wheel_old_pos_(0.0),
+  fr_wheel_old_pos_(0.0),
   velocity_rolling_window_size_(velocity_rolling_window_size),
-  linear_accumulator_x_(velocity_rolling_window_size),
-  linear_accumulator_y_(velocity_rolling_window_size),
+  linear_x_accumulator_(velocity_rolling_window_size),
+  linear_y_accumulator_(velocity_rolling_window_size),
   angular_accumulator_(velocity_rolling_window_size)
+  {
+  }
 
 void Odometry::init(const rclcpp::Time & time)
 {
@@ -83,7 +87,8 @@ bool Odometry::update(double fl_wheel_pos, double fl_steering_pos, double bl_whe
   br_wheel_old_pos_ = br_wheel_cur_pos;
   fr_wheel_old_pos_ = fr_wheel_cur_pos;
 
-  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, time);
+  updateFromVelocity(fl_wheel_est_vel * fl_wheel_radius_, fl_steering_pos, bl_wheel_est_vel * bl_wheel_radius_, bl_steering_pos, 
+                     br_wheel_est_vel * br_wheel_radius_, br_steering_pos, fr_wheel_est_vel * fr_wheel_radius_, fr_steering_pos, time);
 
   return true;
 }
@@ -116,12 +121,12 @@ bool Odometry::updateFromVelocity(double fl_wheel_vel, double fl_steering_pos, d
   timestamp_ = time;
 
   // Estimate speeds using a rolling mean to filter them out:
-  linear_x_acumulator_.accumulate(linear_x / dt);
-  linear_y_acumulator_.accumulate(linear_y / dt);
+  linear_x_accumulator_.accumulate(linear_x / dt);
+  linear_x_accumulator_.accumulate(linear_y / dt);
   angular_accumulator_.accumulate(angular / dt);
 
-  linear_x_ = linear_x_acumulator_.getRollingMean();
-  linear_y_ = linear_y_acumulator_.getRollingMean();
+  linear_x_ = linear_x_accumulator_.getRollingMean();
+  linear_y_ = linear_x_accumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
 
   return true;
@@ -147,11 +152,11 @@ void Odometry::resetOdometry()
   heading_ = 0.0;
 }
 
-void setWheelParams(double fl_wheel_position_x, double fl_wheel_position_y, double fl_wheel_radius,
-                      double bl_wheel_position_x, double bl_wheel_position_y, double bl_wheel_radius,
-                      double br_wheel_position_x, double br_wheel_position_y, double br_wheel_radius,
-                      double fr_wheel_position_x, double fr_wheel_position_y, double fr_wheel_radius)
-{
+void Odometry::setWheelParams(double fl_wheel_position_x, double fl_wheel_position_y, double fl_wheel_radius,
+                    double bl_wheel_position_x, double bl_wheel_position_y, double bl_wheel_radius,
+                    double br_wheel_position_x, double br_wheel_position_y, double br_wheel_radius,
+                    double fr_wheel_position_x, double fr_wheel_position_y, double fr_wheel_radius){
+  
   fl_wheel_position_x_ = fl_wheel_position_x;
   fl_wheel_position_y_ = fl_wheel_position_y;
   fl_wheel_radius_ = fl_wheel_radius;

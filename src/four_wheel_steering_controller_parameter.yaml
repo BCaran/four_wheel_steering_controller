@@ -1,44 +1,173 @@
 four_wheel_steering_controller:
-  left_wheel_names: {
+#Front left wheel and steering system
+  fl_wheel_name: {
     type: string_array,
     default_value: [],
-    description: "Link names of the left side wheels",
+    description: "Link names of the front left wheel",
   }
-  right_wheel_names: {
+  fl_steering_name: {
     type: string_array,
     default_value: [],
-    description: "Link names of the right side wheels",
+    description: "Link names of the front left steering",
   }
-  wheel_separation: {
+  fl_wheel_position_x: {
     type: double,
-    default_value: 0.0,
-    description: "Shortest distance between the left and right wheels. If this parameter is wrong, the robot will not behave correctly in curves.",
+    default_value: .NAN,
+    description: "The x axis position of front left wheel relative to the kinematic centar of robot in meters (should be positive)",
   }
-  wheels_per_side: {
-    type: int,
-    default_value: 0,
-    description: "Number of wheels on each side of the robot. This is important to take the wheels slip into account when multiple wheels on each side are present. If there are more wheels then control signals for each side, you should enter number for control signals. For example, Husky has two wheels on each side, but they use one control signal, in this case '1' is the correct value of the parameter.",
-  }
-  wheel_radius: {
+  fl_wheel_position_y: {
     type: double,
-    default_value: 0.0,
-    description: "Radius of a wheel, i.e., wheels size, used for transformation of linear velocity into wheel rotations. If this parameter is wrong the robot will move faster or slower then expected.",
+    default_value: .NAN,
+    description: "The y axis position of front left wheel relative to the kinematic centar of robot in meters (should be positive)",
   }
-  wheel_separation_multiplier: {
+  fl_wheel_radius: {
     type: double,
-    default_value: 1.0,
-    description: "Correction factor for wheel separation (TODO(destogl): Please help me describe this correctly)",
+    default_value: .NAN,
+    description: "The radius of the front left wheel in meters",
   }
-  left_wheel_radius_multiplier: {
+  fl_wheel_position_x_multiplier: {
     type: double,
     default_value: 1.0,
-    description: "Correction factor when radius of left wheels differs from the nominal value in ``wheel_radius`` parameter.",
+    description: "Correction factor for the x axis position of the front left wheel",
   }
-  right_wheel_radius_multiplier: {
+  fl_wheel_position_y_multiplier: {
     type: double,
     default_value: 1.0,
-    description: "Correction factor when radius of right wheels differs from the nominal value in ``wheel_radius`` parameter.",
+    description: "Correction factor for the y axis position of the front left wheel",
   }
+  fl_wheel_radius_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the radius of the front left wheel",
+  }
+
+#Back left wheel and steering system
+  bl_wheel_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the back left wheel",
+  }
+  bl_steering_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the back left steering",
+  }
+  bl_wheel_position_x: {
+    type: double,
+    default_value: .NAN,
+    description: "The x axis position of back left wheel relative to the kinematic centar of robot in meters (should be negative)",
+  }
+  bl_wheel_position_y: {
+    type: double,
+    default_value: .NAN,
+    description: "The y axis position of back left wheel relative to the kinematic centar of robot in meters (should be positive)",
+  }
+  bl_wheel_radius: {
+    type: double,
+    default_value: .NAN,
+    description: "The radius of the back left wheel in meters",
+  }
+  bl_wheel_position_x_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the x axis position of the back left wheel",
+  }
+  bl_wheel_position_y_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the y axis position of the back left wheel",
+  }
+  bl_wheel_radius_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the radius of the back left wheel",
+  }
+
+#Back right wheel and steering system
+  br_wheel_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the back right wheel",
+  }
+  br_steering_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the back right steering",
+  }
+  br_wheel_position_x: {
+    type: double,
+    default_value: .NAN,
+    description: "The x axis position of back right wheel relative to the kinematic centar of robot in meters (should be negative)",
+  }
+  br_wheel_position_y: {
+    type: double,
+    default_value: .NAN,
+    description: "The y axis position of back right wheel relative to the kinematic centar of robot in meters (should be negative)",
+  }
+  br_wheel_radius: {
+    type: double,
+    default_value: .NAN,
+    description: "The radius of the back right wheel in meters",
+  }
+  br_wheel_position_x_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the x axis position of the back right wheel",
+  }
+  br_wheel_position_y_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the y axis position of the back right wheel",
+  }
+  br_wheel_radius_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the radius of the back right wheel",
+  }
+
+#Front right wheel and steering system
+  fr_wheel_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the front right wheel",
+  }
+  fr_steering_name: {
+    type: string_array,
+    default_value: [],
+    description: "Link names of the front right steering",
+  }
+  fr_wheel_position_x: {
+    type: double,
+    default_value: .NAN,
+    description: "The x axis position of front right wheel relative to the kinematic centar of robot in meters (should be positive)",
+  }
+  fr_wheel_position_y: {
+    type: double,
+    default_value: .NAN,
+    description: "The y axis position of front right wheel relative to the kinematic centar of robot in meters (should be negative)"
+  }
+  fr_wheel_radius: {
+    type: double,
+    default_value: .NAN,
+    description: "The radius of the front right wheel in meters",
+  }
+  fr_wheel_position_x_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the x axis position of the front right wheel",
+  }
+  fr_wheel_position_y_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the y axis position of the front right wheel",
+  }
+  fr_wheel_radius_multiplier: {
+    type: double,
+    default_value: 1.0,
+    description: "Correction factor for the radius of the front right wheel",
+  }
+ 
+ # Other parameters taken from diff drive controller
   tf_frame_prefix_enable: {
     type: bool,
     default_value: true,
@@ -74,10 +203,15 @@ four_wheel_steering_controller:
     default_value: false,
     description: "If set to true the odometry of the robot will be calculated from the commanded values and not from feedback.",
   }
-  position_feedback: {
+  driving_position_feedback: {
+    type: bool,
+    default_value: false,
+    description: "Is there position feedback from hardware for the driving system.",
+  }
+  steering_position_feedback: {
     type: bool,
     default_value: true,
-    description: "Is there position feedback from hardware.",
+    description: "Is there position feedback from hardware for the steering system.",
   }
   enable_odom_tf: {
     type: bool,
@@ -109,6 +243,7 @@ four_wheel_steering_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages.",
   }
+  #TODO FOR THE Y
   linear:
     x:
       has_velocity_limits: {

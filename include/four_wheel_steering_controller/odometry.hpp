@@ -96,8 +96,10 @@ private:
   double fr_wheel_radius_;
 
   // Previous wheel position/state [rad]: <---------------------DORADITI!!
-  double left_wheel_old_pos_;
-  double right_wheel_old_pos_;
+  double fl_wheel_old_pos_;
+  double bl_wheel_old_pos_;
+  double br_wheel_old_pos_;
+  double fr_wheel_old_pos_;
 
   // Rolling mean accumulators for the linear x, linear y and angular velocities:
   size_t velocity_rolling_window_size_;

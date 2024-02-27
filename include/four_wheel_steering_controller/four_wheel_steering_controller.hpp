@@ -96,15 +96,35 @@ protected:
   {
     std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback;
     std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity;
+    
+    
   };
 
-  const char * feedback_type() const;
-  controller_interface::CallbackReturn configure_side(
-    const std::string & side, const std::vector<std::string> & wheel_names,
+  struct SteeringHandle
+  {
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback;
+    std::reference_wrapper<hardware_interface::LoanedCommandInterface> position;
+  };
+  
+
+  const char * driving_feedback_type() const;
+  const char * steering_feedback_type() const;
+
+  controller_interface::CallbackReturn configure_driving_side( const std::string & side, const std::vector<std::string> & wheel_names, 
     std::vector<WheelHandle> & registered_handles);
 
-  std::vector<WheelHandle> registered_left_wheel_handles_;
-  std::vector<WheelHandle> registered_right_wheel_handles_;
+  controller_interface::CallbackReturn configure_steering_side( const std::string & side, const std::vector<std::string> & wheel_names,
+  std::vector<SteeringHandle> & registered_handles);
+  
+  std::vector<WheelHandle> registered_fl_wheel_handles_;
+  std::vector<WheelHandle> registered_bl_wheel_handles_;
+  std::vector<WheelHandle> registered_br_wheel_handles_;
+  std::vector<WheelHandle> registered_fr_wheel_handles_;
+
+  std::vector<SteeringHandle> registered_fl_steering_handles_;
+  std::vector<SteeringHandle> registered_bl_steering_handles_;
+  std::vector<SteeringHandle> registered_br_steering_handles_;
+  std::vector<SteeringHandle> registered_fr_steering_handles_;
 
   // Parameters from ROS for four_wheel_steering_controller
   std::shared_ptr<ParamListener> param_listener_;

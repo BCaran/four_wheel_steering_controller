@@ -48,9 +48,14 @@ using lifecycle_msgs::msg::State;
 
 FourWheelSteeringController::FourWheelSteeringController() : controller_interface::ControllerInterface() {}
 
-const char * FourWheelSteeringController::feedback_type() const
+const char * FourWheelSteeringController::driving_feedback_type() const
 {
-  return params_.position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+  return params_.driving_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
+}
+
+const char * FourWheelSteeringController::steering_feedback_type() const
+{
+  return params_.steering_position_feedback ? HW_IF_POSITION : HW_IF_VELOCITY;
 }
 
 controller_interface::CallbackReturn FourWheelSteeringController::on_init()
@@ -72,29 +77,85 @@ controller_interface::CallbackReturn FourWheelSteeringController::on_init()
 
 InterfaceConfiguration FourWheelSteeringController::command_interface_configuration() const
 {
+
   std::vector<std::string> conf_names;
-  for (const auto & joint_name : params_.left_wheel_names)
+
+  for (const auto & joint_name : params_.fl_wheel_name)
   {
     conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
-  for (const auto & joint_name : params_.right_wheel_names)
+  for (const auto & joint_name : params_.bl_wheel_name)
   {
     conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
   }
+  for (const auto & joint_name : params_.br_wheel_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+  }
+  for (const auto & joint_name : params_.fr_wheel_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_VELOCITY);
+  }
+
+  for (const auto & joint_name : params_.fl_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+  }
+  for (const auto & joint_name : params_.bl_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+  }
+  for (const auto & joint_name : params_.br_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+  }
+  for (const auto & joint_name : params_.fr_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + HW_IF_POSITION);
+  }
+
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
 InterfaceConfiguration FourWheelSteeringController::state_interface_configuration() const
 {
   std::vector<std::string> conf_names;
-  for (const auto & joint_name : params_.left_wheel_names)
+
+  for (const auto & joint_name : params_.fl_wheel_name)
   {
-    conf_names.push_back(joint_name + "/" + feedback_type());
+    conf_names.push_back(joint_name + "/" + driving_feedback_type());
   }
-  for (const auto & joint_name : params_.right_wheel_names)
+  for (const auto & joint_name : params_.bl_wheel_name)
   {
-    conf_names.push_back(joint_name + "/" + feedback_type());
+    conf_names.push_back(joint_name + "/" + driving_feedback_type());
   }
+  for (const auto & joint_name : params_.br_wheel_name)
+  {
+    conf_names.push_back(joint_name + "/" + driving_feedback_type());
+  }
+  for (const auto & joint_name : params_.fr_wheel_name)
+  {
+    conf_names.push_back(joint_name + "/" + driving_feedback_type());
+  }
+
+  for (const auto & joint_name : params_.fl_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + steering_feedback_type());
+  }
+  for (const auto & joint_name : params_.bl_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + steering_feedback_type());
+  }
+  for (const auto & joint_name : params_.br_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + steering_feedback_type());
+  }
+  for (const auto & joint_name : params_.fr_steering_name)
+  {
+    conf_names.push_back(joint_name + "/" + steering_feedback_type());
+  }
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
@@ -126,60 +187,66 @@ controller_interface::return_type FourWheelSteeringController::update(
   if (age_of_last_command > cmd_vel_timeout_)
   {
     last_command_msg->twist.linear.x = 0.0;
+    last_command_msg->twist.linear.y = 0.0;
     last_command_msg->twist.angular.z = 0.0;
   }
 
   // command may be limited further by SpeedLimit,
   // without affecting the stored twist command
   Twist command = *last_command_msg;
-  double & linear_command = command.twist.linear.x;
+  double & linear_x_command = command.twist.linear.x;
+  double & linear_y_command = command.twist.linear.y;
   double & angular_command = command.twist.angular.z;
 
   previous_update_timestamp_ = time;
 
   // Apply (possibly new) multipliers:
-  const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
-  const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
-  const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
+  const double fl_wheel_position_x = params_.fl_wheel_position_x_multiplier * params_.fl_wheel_position_x;
+  const double fl_wheel_position_y = params_.fl_wheel_position_y_multiplier * params_.fl_wheel_position_y;
+  const double fl_wheel_radius = params_.fl_wheel_radius_multiplier * params_.fl_wheel_radius;
+
+  const double bl_wheel_position_x = params_.bl_wheel_position_x_multiplier * params_.bl_wheel_position_x;
+  const double bl_wheel_position_y = params_.bl_wheel_position_y_multiplier * params_.bl_wheel_position_y;
+  const double bl_wheel_radius = params_.bl_wheel_radius_multiplier * params_.bl_wheel_radius;
+
+  const double br_wheel_position_x = params_.br_wheel_position_x_multiplier * params_.br_wheel_position_x;
+  const double br_wheel_position_y = params_.br_wheel_position_y_multiplier * params_.br_wheel_position_y;
+  const double br_wheel_radius = params_.br_wheel_radius_multiplier * params_.br_wheel_radius;
+
+  const double fr_wheel_position_x = params_.fr_wheel_position_x_multiplier * params_.fr_wheel_position_x;
+  const double fr_wheel_position_y = params_.fr_wheel_position_y_multiplier * params_.fr_wheel_position_y;
+  const double fr_wheel_radius = params_.fr_wheel_radius_multiplier * params_.fr_wheel_radius;
 
   if (params_.open_loop)
   {
-    odometry_.updateOpenLoop(linear_command, angular_command, time);
+    odometry_.updateOpenLoop(linear_x_command, linear_y_command, angular_command, time);
   }
   else
   {
-    double left_feedback_mean = 0.0;
-    double right_feedback_mean = 0.0;
-    for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+    const double fl_velocity_feedback = registered_fl_wheel_handles_[0].feedback.get().get_value() * fl_wheel_radius;
+    const double bl_velocity_feedback = registered_bl_wheel_handles_[0].feedback.get().get_value() * bl_wheel_radius;
+    const double br_velocity_feedback = registered_br_wheel_handles_[0].feedback.get().get_value() * br_wheel_radius;
+    const double fr_velocity_feedback = registered_fr_wheel_handles_[0].feedback.get().get_value() * fr_wheel_radius;
+
+    const double fl_steering_feedback = registered_fl_steering_handles_[0].position.get().get_value();
+    const double bl_steering_feedback = registered_bl_steering_handles_[0].position.get().get_value();
+    const double br_steering_feedback = registered_br_steering_handles_[0].position.get().get_value();
+    const double fr_steering_feedback = registered_fr_steering_handles_[0].position.get().get_value();
+
+    
+    odometry_.updateFromVelocity(fl_velocity_feedback, fl_steering_feedback, bl_velocity_feedback, bl_steering_feedback, 
+        br_velocity_feedback, br_steering_feedback, fr_velocity_feedback, fr_steering_feedback, time);
+        
+    /*if (params_.driving_position_feedback)
     {
-      const double left_feedback = registered_left_wheel_handles_[index].feedback.get().get_value();
-      const double right_feedback =
-        registered_right_wheel_handles_[index].feedback.get().get_value();
-
-      if (std::isnan(left_feedback) || std::isnan(right_feedback))
-      {
-        RCLCPP_ERROR(
-          logger, "Either the left or right wheel %s is invalid for index [%zu]", feedback_type(),
-          index);
-        return controller_interface::return_type::ERROR;
-      }
-
-      left_feedback_mean += left_feedback;
-      right_feedback_mean += right_feedback;
-    }
-    left_feedback_mean /= params_.wheels_per_side;
-    right_feedback_mean /= params_.wheels_per_side;
-
-    if (params_.position_feedback)
-    {
-      odometry_.update(left_feedback_mean, right_feedback_mean, time);
+      odometry_.update(fl_velocity_feedback, fl_steering_feedback, bl_velocity_feedback, bl_steering_feedback, 
+        br_velocity_feedback, br_steering_feedback, fr_velocity_feedback, fr_steering_feedback, time);
     }
     else
-    {
-      odometry_.updateFromVelocity(
-        left_feedback_mean * left_wheel_radius * period.seconds(),
-        right_feedback_mean * right_wheel_radius * period.seconds(), time);
-    }
+    {      
+      odometry_.updateFromVelocity(fl_velocity_feedback, fl_steering_feedback, bl_velocity_feedback, bl_steering_feedback, 
+        br_velocity_feedback, br_steering_feedback, fr_velocity_feedback, fr_steering_feedback, time);
+    }*/
   }
 
   tf2::Quaternion orientation;
@@ -213,7 +280,8 @@ controller_interface::return_type FourWheelSteeringController::update(
       odometry_message.pose.pose.orientation.y = orientation.y();
       odometry_message.pose.pose.orientation.z = orientation.z();
       odometry_message.pose.pose.orientation.w = orientation.w();
-      odometry_message.twist.twist.linear.x = odometry_.getLinear();
+      odometry_message.twist.twist.linear.x = odometry_.getLinearX();
+      odometry_message.twist.twist.linear.y = odometry_.getLinearY();
       odometry_message.twist.twist.angular.z = odometry_.getAngular();
       realtime_odometry_publisher_->unlockAndPublish();
     }
@@ -235,7 +303,9 @@ controller_interface::return_type FourWheelSteeringController::update(
   auto & last_command = previous_commands_.back().twist;
   auto & second_to_last_command = previous_commands_.front().twist;
   limiter_linear_.limit(
-    linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
+    linear_x_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
+  limiter_linear_.limit(
+    linear_x_command, last_command.linear.x, second_to_last_command.linear.y, period.seconds());
   limiter_angular_.limit(
     angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
 
@@ -252,17 +322,31 @@ controller_interface::return_type FourWheelSteeringController::update(
   }
 
   // Compute wheels velocities:
-  const double velocity_left =
-    (linear_command - angular_command * wheel_separation / 2.0) / left_wheel_radius;
-  const double velocity_right =
-    (linear_command + angular_command * wheel_separation / 2.0) / right_wheel_radius;
+  double wheels_x_velocity[4] = {0.0, 0.0, 0.0, 0.0};
+  double wheels_y_velocity[4] = {0.0, 0.0, 0.0, 0.0};
+  double wheels_velocity[4] = {0.0, 0.0, 0.0, 0.0};
+  double wheels_angles[4] = {0.0, 0.0, 0.0, 0.0};
+  const double wheel_pos_x[4] = {fl_wheel_position_x, bl_wheel_position_x, br_wheel_position_x, fr_wheel_position_x};
+  const double wheel_pos_y[4] = {fl_wheel_position_y, bl_wheel_position_y, br_wheel_position_y, fr_wheel_position_y};
 
-  // Set wheels velocities:
-  for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
-  {
-    registered_left_wheel_handles_[index].velocity.get().set_value(velocity_left);
-    registered_right_wheel_handles_[index].velocity.get().set_value(velocity_right);
+  for(int i = 0; i < 4; i++){
+    wheels_x_velocity[i] = linear_x_command - wheel_pos_y[i] * angular_command;
+    wheels_y_velocity[i] = linear_y_command + wheel_pos_x[i] * angular_command;
+    wheels_velocity[i] = sqrt(pow(wheels_x_velocity[i], 2) + pow(wheels_y_velocity[i], 2));
+    wheels_angles[i] = atan2(wheels_y_velocity[i], wheels_x_velocity[i]);
   }
+
+  //Set wheels velocities
+  registered_fl_wheel_handles_[0].velocity.get().set_value(wheels_velocity[0]);
+  registered_bl_wheel_handles_[0].velocity.get().set_value(wheels_velocity[1]);
+  registered_br_wheel_handles_[0].velocity.get().set_value(wheels_velocity[2]);
+  registered_fr_wheel_handles_[0].velocity.get().set_value(wheels_velocity[3]);
+
+  //Set wheels angles
+  registered_fl_steering_handles_[0].position.get().set_value(wheels_angles[0]);
+  registered_bl_steering_handles_[0].position.get().set_value(wheels_angles[1]);
+  registered_br_steering_handles_[0].position.get().set_value(wheels_angles[2]);
+  registered_fr_steering_handles_[0].position.get().set_value(wheels_angles[3]);
 
   return controller_interface::return_type::OK;
 }
@@ -279,38 +363,49 @@ controller_interface::CallbackReturn FourWheelSteeringController::on_configure(
     RCLCPP_INFO(logger, "Parameters were updated");
   }
 
-  if (params_.left_wheel_names.size() != params_.right_wheel_names.size())
-  {
-    RCLCPP_ERROR(
-      logger, "The number of left wheels [%zu] and the number of right wheels [%zu] are different",
-      params_.left_wheel_names.size(), params_.right_wheel_names.size());
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  if (params_.left_wheel_names.empty())
+  if (params_.fl_wheel_name.empty() && params_.bl_wheel_name.empty() && params_.br_wheel_name.empty() && params_.fr_wheel_name.empty())
   {
     RCLCPP_ERROR(logger, "Wheel names parameters are empty!");
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
-  const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
-  const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
+  if (params_.fl_steering_name.empty() && params_.bl_steering_name.empty() && params_.br_steering_name.empty() && params_.fr_steering_name.empty())
+  {
+    RCLCPP_ERROR(logger, "Steering names parameters are empty!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
-  odometry_.setWheelParams(wheel_separation, left_wheel_radius, right_wheel_radius);
+  const double fl_wheel_position_x = params_.fl_wheel_position_x_multiplier * params_.fl_wheel_position_x;
+  const double fl_wheel_position_y = params_.fl_wheel_position_y_multiplier * params_.fl_wheel_position_y;
+  const double fl_wheel_radius = params_.fl_wheel_radius_multiplier * params_.fl_wheel_radius;
+
+  const double bl_wheel_position_x = params_.bl_wheel_position_x_multiplier * params_.bl_wheel_position_x;
+  const double bl_wheel_position_y = params_.bl_wheel_position_y_multiplier * params_.bl_wheel_position_y;
+  const double bl_wheel_radius = params_.bl_wheel_radius_multiplier * params_.bl_wheel_radius;
+
+  const double br_wheel_position_x = params_.br_wheel_position_x_multiplier * params_.br_wheel_position_x;
+  const double br_wheel_position_y = params_.br_wheel_position_y_multiplier * params_.br_wheel_position_y;
+  const double br_wheel_radius = params_.br_wheel_radius_multiplier * params_.br_wheel_radius;
+
+  const double fr_wheel_position_x = params_.fr_wheel_position_x_multiplier * params_.fr_wheel_position_x;
+  const double fr_wheel_position_y = params_.fr_wheel_position_y_multiplier * params_.fr_wheel_position_y;
+  const double fr_wheel_radius = params_.fr_wheel_radius_multiplier * params_.fr_wheel_radius;
+
+  odometry_.setWheelParams(fl_wheel_position_x, fl_wheel_position_y, fl_wheel_radius, bl_wheel_position_x, bl_wheel_position_y, bl_wheel_radius,
+                           br_wheel_position_x, br_wheel_position_y, br_wheel_radius, fr_wheel_position_x, fr_wheel_position_y, fr_wheel_radius);
   odometry_.setVelocityRollingWindowSize(params_.velocity_rolling_window_size);
 
   cmd_vel_timeout_ = std::chrono::milliseconds{static_cast<int>(params_.cmd_vel_timeout * 1000.0)};
   publish_limited_velocity_ = params_.publish_limited_velocity;
   use_stamped_vel_ = params_.use_stamped_vel;
 
-  limiter_linear_ = SpeedLimiter(
+  limiter_linear_ = SpeedLimiter( //<--------------------------------------------------------------------DORADITI
     params_.linear.x.has_velocity_limits, params_.linear.x.has_acceleration_limits,
     params_.linear.x.has_jerk_limits, params_.linear.x.min_velocity, params_.linear.x.max_velocity,
     params_.linear.x.min_acceleration, params_.linear.x.max_acceleration, params_.linear.x.min_jerk,
     params_.linear.x.max_jerk);
 
-  limiter_angular_ = SpeedLimiter(
+  limiter_angular_ = SpeedLimiter( //<--------------------------------------------------------------------DORADITI
     params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
     params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
     params_.angular.z.max_velocity, params_.angular.z.min_acceleration,
@@ -322,7 +417,7 @@ controller_interface::CallbackReturn FourWheelSteeringController::on_configure(
   }
 
   // left and right sides are both equal at this point
-  params_.wheels_per_side = params_.left_wheel_names.size();
+  //params_.wheels_per_side = params_.left_wheel_names.size();
 
   if (publish_limited_velocity_)
   {
@@ -459,25 +554,41 @@ controller_interface::CallbackReturn FourWheelSteeringController::on_configure(
 controller_interface::CallbackReturn FourWheelSteeringController::on_activate(
   const rclcpp_lifecycle::State &)
 {
-  const auto left_result =
-    configure_side("left", params_.left_wheel_names, registered_left_wheel_handles_);
-  const auto right_result =
-    configure_side("right", params_.right_wheel_names, registered_right_wheel_handles_);
+  const auto fl_wheel_result = configure_driving_side("fl_driving", params_.fl_wheel_name, registered_fl_wheel_handles_);
+  const auto bl_wheel_result = configure_driving_side("bl_driving", params_.bl_wheel_name, registered_bl_wheel_handles_);
+  const auto br_wheel_result = configure_driving_side("br_driving", params_.br_wheel_name, registered_br_wheel_handles_);
+  const auto fr_wheel_result = configure_driving_side("fl_driving", params_.fr_wheel_name, registered_fr_wheel_handles_);
+
+  const auto fl_steering_result = configure_steering_side("fl_steering", params_.fl_steering_name, registered_fl_steering_handles_);
+  const auto bl_steering_result = configure_steering_side("bl_steering", params_.bl_steering_name, registered_bl_steering_handles_);
+  const auto br_steering_result = configure_steering_side("br_steering", params_.br_steering_name, registered_br_steering_handles_);
+  const auto fr_steering_result = configure_steering_side("fr_steering", params_.fr_steering_name, registered_fr_steering_handles_);
 
   if (
-    left_result == controller_interface::CallbackReturn::ERROR ||
-    right_result == controller_interface::CallbackReturn::ERROR)
+    fl_wheel_result == controller_interface::CallbackReturn::ERROR ||
+    bl_wheel_result == controller_interface::CallbackReturn::ERROR ||
+    br_wheel_result == controller_interface::CallbackReturn::ERROR ||
+    fr_wheel_result == controller_interface::CallbackReturn::ERROR ||
+    fl_steering_result == controller_interface::CallbackReturn::ERROR ||
+    bl_steering_result == controller_interface::CallbackReturn::ERROR ||
+    br_steering_result == controller_interface::CallbackReturn::ERROR ||
+    fr_steering_result == controller_interface::CallbackReturn::ERROR)
   {
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  if (registered_left_wheel_handles_.empty() || registered_right_wheel_handles_.empty())
+  
+  if (registered_fl_wheel_handles_.empty() || registered_fl_steering_handles_.empty() ||
+      registered_bl_wheel_handles_.empty() || registered_bl_steering_handles_.empty() ||
+      registered_br_wheel_handles_.empty() || registered_br_steering_handles_.empty() ||
+      registered_fr_wheel_handles_.empty() || registered_fr_steering_handles_.empty())
   {
     RCLCPP_ERROR(
       get_node()->get_logger(),
-      "Either left wheel interfaces, right wheel interfaces are non existent");
+      "Either one interfaces are non existent");
     return controller_interface::CallbackReturn::ERROR;
   }
+  
 
   is_halted = false;
   subscriber_is_active_ = true;
@@ -495,8 +606,17 @@ controller_interface::CallbackReturn FourWheelSteeringController::on_deactivate(
     halt();
     is_halted = true;
   }
-  registered_left_wheel_handles_.clear();
-  registered_right_wheel_handles_.clear();
+  /*
+  registered_fl_wheel_handle_.clear();
+  registered_bl_wheel_handle_.clear();
+  registered_br_wheel_handle_.clear();
+  registered_fr_wheel_handle_.clear();
+
+  registered_fl_steering_handle_.clear();
+  registered_bl_steering_handle_.clear();
+  registered_br_steering_handle_.clear();
+  registered_fr_steering_handle_.clear();
+  */
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -528,9 +648,21 @@ bool FourWheelSteeringController::reset()
   // release the old queue
   std::queue<Twist> empty;
   std::swap(previous_commands_, empty);
+  
+  /*
+  registered_fl_wheel_handles_.clear();
+  registered_bl_wheel_handles_.clear();
+  registered_br_wheel_handles_.clear();
+  registered_fr_wheel_handles_.clear();
 
-  registered_left_wheel_handles_.clear();
-  registered_right_wheel_handles_.clear();
+  registered_fl_steering_handles_.clear();
+  registered_bl_steering_handles_.clear();
+  registered_br_steering_handles_.clear();
+  registered_fr_steering_handles_.clear();
+
+  //registered_left_wheel_handles_.clear();
+  //registered_right_wheel_handles_.clear();
+  */
 
   subscriber_is_active_ = false;
   velocity_command_subscriber_.reset();
@@ -557,13 +689,27 @@ void FourWheelSteeringController::halt()
     }
   };
 
-  halt_wheels(registered_left_wheel_handles_);
-  halt_wheels(registered_right_wheel_handles_);
+  const auto halt_steering = [](auto & steering_handles)
+  {
+    for(const auto & steering_handle : steering_handles)
+    {
+      steering_handle.position.get().set_value(0.0);
+    }
+  };
+
+  halt_wheels(registered_fl_wheel_handles_);
+  halt_wheels(registered_bl_wheel_handles_);
+  halt_wheels(registered_br_wheel_handles_);
+  halt_wheels(registered_fr_wheel_handles_);
+
+  halt_steering(registered_fl_steering_handles_);
+  halt_steering(registered_bl_steering_handles_);
+  halt_steering(registered_br_steering_handles_);
+  halt_steering(registered_fr_steering_handles_);
 }
 
-controller_interface::CallbackReturn FourWheelSteeringController::configure_side(
-  const std::string & side, const std::vector<std::string> & wheel_names,
-  std::vector<WheelHandle> & registered_handles)
+controller_interface::CallbackReturn FourWheelSteeringController::configure_driving_side(
+  const std::string & side, const std::vector<std::string> & wheel_names, std::vector<WheelHandle> & registered_handles)
 {
   auto logger = get_node()->get_logger();
 
@@ -577,7 +723,7 @@ controller_interface::CallbackReturn FourWheelSteeringController::configure_side
   registered_handles.reserve(wheel_names.size());
   for (const auto & wheel_name : wheel_names)
   {
-    const auto interface_name = feedback_type();
+    const auto interface_name = driving_feedback_type();
     const auto state_handle = std::find_if(
       state_interfaces_.cbegin(), state_interfaces_.cend(),
       [&wheel_name, &interface_name](const auto & interface)
@@ -608,6 +754,58 @@ controller_interface::CallbackReturn FourWheelSteeringController::configure_side
 
     registered_handles.emplace_back(
       WheelHandle{std::ref(*state_handle), std::ref(*command_handle)});
+  }
+
+  return controller_interface::CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn FourWheelSteeringController::configure_steering_side(
+  const std::string & side, const std::vector<std::string> & wheel_names,
+  std::vector<SteeringHandle> & registered_handles)
+{
+  auto logger = get_node()->get_logger();
+
+  if (wheel_names.empty())
+  {
+    RCLCPP_ERROR(logger, "No '%s' wheel names specified", side.c_str());
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  // register handles
+  registered_handles.reserve(wheel_names.size());
+  for (const auto & wheel_name : wheel_names)
+  {
+    const auto interface_name = steering_feedback_type();
+    const auto state_handle = std::find_if(
+      state_interfaces_.cbegin(), state_interfaces_.cend(),
+      [&wheel_name, &interface_name](const auto & interface)
+      {
+        return interface.get_prefix_name() == wheel_name &&
+               interface.get_interface_name() == interface_name;
+      });
+
+    if (state_handle == state_interfaces_.cend())
+    {
+      RCLCPP_ERROR(logger, "Unable to obtain joint state handle for %s", wheel_name.c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    const auto command_handle = std::find_if(
+      command_interfaces_.begin(), command_interfaces_.end(),
+      [&wheel_name](const auto & interface)
+      {
+        return interface.get_prefix_name() == wheel_name &&
+               interface.get_interface_name() == HW_IF_POSITION;
+      });
+
+    if (command_handle == command_interfaces_.end())
+    {
+      RCLCPP_ERROR(logger, "Unable to obtain joint command handle for %s", wheel_name.c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    registered_handles.emplace_back(
+      SteeringHandle{std::ref(*state_handle), std::ref(*command_handle)});
   }
 
   return controller_interface::CallbackReturn::SUCCESS;
